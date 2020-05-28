@@ -12,6 +12,11 @@ public class WebsiteScraper : MonoBehaviour
 
     private void Start()
     {
+        StartCoroutine(ReadSamenSpelenWebsite());
+    }
+
+    private IEnumerator ReadSamenSpelenWebsite()
+    {
         using (WebClient client = new WebClient())
         {
             string htmlCode = client.DownloadString("https://samenspelen.online/spellen-overzicht/");
@@ -23,13 +28,14 @@ public class WebsiteScraper : MonoBehaviour
 
             foreach (HtmlNode minigameNode in minigames)
             {
-                HtmlNode titleNode = minigameNode.Descendants("a").Where(n => n.HasClass("title_link")).First();
+                HtmlNode titleNode = minigameNode.Descendants("div").Where(n => n.HasClass("title_link")).First();
                 HtmlNode smalldescriptionNode = minigameNode.Descendants("div").Where(n => n.HasClass("excerpt")).First();
                 HtmlNode imgurlNode = minigameNode.Descendants("img").First();
 
                 string title = HttpUtility.HtmlDecode(titleNode.InnerText);
                 string smallDescription = HttpUtility.HtmlDecode(titleNode.InnerText);
-                string url = titleNode.Attributes["href"].Value;
+                HtmlNode urlNode = titleNode.Descendants("a").First();
+                string url = urlNode.Attributes["href"].Value;
                 string imgUrl = imgurlNode.Attributes["data-src"].Value;
 
 
@@ -50,13 +56,18 @@ public class WebsiteScraper : MonoBehaviour
             }
         }
 
-        Minigame minigame = minigamesList.First();
-        
-        Debug.Log("title: " + minigame.title + " description: " + minigame.smallDescription);
-
-        foreach(string step in minigame.explanationSteps)
+        foreach(Minigame minigame in minigamesList)
         {
-            Debug.Log(step);
+            Debug.Log("title: " + minigame.title + " description: " + minigame.smallDescription);
+
+            foreach (string step in minigame.explanationSteps)
+            {
+                Debug.Log(step);
+            }
         }
+
+     
+
+        yield return null;
     }
 }
